@@ -1,24 +1,43 @@
 import { FC, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
+import { selectConstructorItems } from '../../services/selectors/burgerConstructorSelectors';
+import { selectIsAuthenticated } from '../../services/selectors/userSelectors';
+import { useDispatch, useSelector } from '../../services/store';
+import {
+  clearOrderModalData,
+  createOrder
+} from '../../services/slices/burgerConstructorSlice';
 
 export const BurgerConstructor: FC = () => {
-  /** TODO: взять переменные constructorItems, orderRequest и orderModalData из стора */
-  const constructorItems = {
-    bun: {
-      price: 0
-    },
-    ingredients: []
-  };
+  const dispatch = useDispatch();
+  const constructorItems = useSelector(selectConstructorItems);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  const orderRequest = false;
-
-  const orderModalData = null;
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const onOrderClick = () => {
-    if (!constructorItems.bun || orderRequest) return;
+    if (!constructorItems.bun || constructorItems.orderRequest) return;
+
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
+    const ingredientIds = [
+      constructorItems.bun._id,
+      ...constructorItems.ingredients.map((ingredient) => ingredient._id),
+      constructorItems.bun._id
+    ];
+
+    dispatch(createOrder(ingredientIds));
   };
-  const closeOrderModal = () => {};
+
+  const closeOrderModal = () => {
+    dispatch(clearOrderModalData());
+  };
 
   const price = useMemo(
     () =>
@@ -30,14 +49,12 @@ export const BurgerConstructor: FC = () => {
     [constructorItems]
   );
 
-  return null;
-
   return (
     <BurgerConstructorUI
       price={price}
-      orderRequest={orderRequest}
+      orderRequest={constructorItems.orderRequest}
       constructorItems={constructorItems}
-      orderModalData={orderModalData}
+      orderModalData={constructorItems.orderModalData}
       onOrderClick={onOrderClick}
       closeOrderModal={closeOrderModal}
     />

@@ -1,23 +1,35 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
+import { selectIngredients } from '../../services/selectors/ingredientsSelectors';
+import {
+  selectOrderByNumber,
+  selectCurrentOrderError,
+  selectCurrentOrderLoading
+} from '../../services/selectors/feedSelectors';
+import { useSelector, useDispatch } from '../../services/store';
+import { fetchOrderByNumber } from '../../services/slices/feedSlice';
+import { NotFound404 } from '@pages';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const orderNumber = Number(number);
 
-  const ingredients: TIngredient[] = [];
+  const orderData = useSelector(selectOrderByNumber(orderNumber));
+  const dispatch = useDispatch();
+  const isLoading = useSelector(selectCurrentOrderLoading);
+  const error = useSelector(selectCurrentOrderError);
 
-  /* Готовим данные для отображения */
+  useEffect(() => {
+    if (!orderData && !Number.isNaN(orderNumber)) {
+      dispatch(fetchOrderByNumber(orderNumber));
+    }
+  }, [dispatch, orderData, orderNumber]);
+
+  const ingredients = useSelector(selectIngredients);
+
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
@@ -31,6 +43,7 @@ export const OrderInfo: FC = () => {
       (acc: TIngredientsWithCount, item) => {
         if (!acc[item]) {
           const ingredient = ingredients.find((ing) => ing._id === item);
+
           if (ingredient) {
             acc[item] = {
               ...ingredient,
@@ -58,6 +71,14 @@ export const OrderInfo: FC = () => {
       total
     };
   }, [orderData, ingredients]);
+
+  if (isLoading) {
+    return <Preloader />;
+  }
+
+  if (Number.isNaN(orderNumber) || error) {
+    return <NotFound404 />;
+  }
 
   if (!orderInfo) {
     return <Preloader />;
