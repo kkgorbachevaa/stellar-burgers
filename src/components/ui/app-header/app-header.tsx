@@ -19,22 +19,33 @@ export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => (
             `${styles.link} ${isActive ? styles.link_active : ''} mr-10`
           }
         >
-          <BurgerIcon type='primary' />
-          <p className='text text_type_main-default ml-2'>Конструктор</p>
+          {({ isActive }) => (
+            <>
+              <BurgerIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className='text text_type_main-default ml-2'>Конструктор</p>
+            </>
+          )}
         </NavLink>
+
         <NavLink
           to='/feed'
           className={({ isActive }) =>
             `${styles.link} ${isActive ? styles.link_active : ''}`
           }
         >
-          <ListIcon type='primary' />
-          <p className='text text_type_main-default ml-2'>Лента заказов</p>
+          {({ isActive }) => (
+            <>
+              <ListIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className='text text_type_main-default ml-2'>Лента заказов</p>
+            </>
+          )}
         </NavLink>
       </div>
+
       <div className={styles.logo}>
         <Logo className='' />
       </div>
+
       <NavLink
         to='/profile'
         className={({ isActive }) =>
@@ -43,10 +54,14 @@ export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => (
           }`
         }
       >
-        <ProfileIcon type='primary' />
-        <p className='text text_type_main-default ml-2'>
-          {userName || 'Личный кабинет'}
-        </p>
+        {({ isActive }) => (
+          <>
+            <ProfileIcon type={isActive ? 'primary' : 'secondary'} />
+            <p className='text text_type_main-default ml-2'>
+              {userName || 'Личный кабинет'}
+            </p>
+          </>
+        )}
       </NavLink>
     </nav>
   </header>
