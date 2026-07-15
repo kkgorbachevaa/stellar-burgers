@@ -6,7 +6,8 @@ test.describe('Конструктор бургера', () => {
   test.beforeEach(async ({ page }) => {
     await page.routeFromHAR(HAR_PATH, {
       url: '**/api/**',
-      update: false
+      update: false,
+      notFound: 'abort'
     });
 
     await page.goto('/');
@@ -14,6 +15,25 @@ test.describe('Конструктор бургера', () => {
 
   test('добавляет булку и начинку в конструктор', async ({ page }) => {
     const burgerConstructor = page.getByTestId('burger-constructor');
+    await expect(
+      burgerConstructor.getByText('Выберите булки', { exact: true })
+    ).toHaveCount(2);
+
+    await expect(
+      burgerConstructor.getByText('Выберите начинку', { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      burgerConstructor.getByText('Тестовая булка (верх)', { exact: true })
+    ).toHaveCount(0);
+
+    await expect(
+      burgerConstructor.getByText('Тестовая булка (низ)', { exact: true })
+    ).toHaveCount(0);
+
+    await expect(
+      burgerConstructor.getByText('Тестовая начинка', { exact: true })
+    ).toHaveCount(0);
     await page
       .getByTestId('ingredient-test-bun-1')
       .getByRole('button', { name: 'Добавить' })
@@ -40,12 +60,13 @@ test.describe('Конструктор бургера', () => {
   test('открывает модальное окно ингредиента и закрывает его крестиком', async ({
     page
   }) => {
+    const modal = page.getByTestId('modal');
+
+    await expect(modal).toHaveCount(0);
     await page
       .getByTestId('ingredient-test-main-1')
       .getByText('Тестовая начинка', { exact: true })
       .click();
-
-    const modal = page.getByTestId('modal');
 
     await expect(modal).toBeVisible();
     await expect(
@@ -64,12 +85,13 @@ test.describe('Конструктор бургера', () => {
   test('закрывает модальное окно ингредиента по клику на оверлей', async ({
     page
   }) => {
+    const modal = page.getByTestId('modal');
+
+    await expect(modal).toHaveCount(0);
     await page
       .getByTestId('ingredient-test-sauce-1')
       .getByText('Тестовый соус', { exact: true })
       .click();
-
-    const modal = page.getByTestId('modal');
 
     await expect(modal).toBeVisible();
 
@@ -94,6 +116,27 @@ test.describe('Конструктор бургера', () => {
     });
 
     await page.reload();
+    const burgerConstructor = page.getByTestId('burger-constructor');
+
+    await expect(
+      burgerConstructor.getByText('Выберите булки', { exact: true })
+    ).toHaveCount(2);
+
+    await expect(
+      burgerConstructor.getByText('Выберите начинку', { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      burgerConstructor.getByText('Тестовая булка (верх)', { exact: true })
+    ).toHaveCount(0);
+
+    await expect(
+      burgerConstructor.getByText('Тестовая булка (низ)', { exact: true })
+    ).toHaveCount(0);
+
+    await expect(
+      burgerConstructor.getByText('Тестовая начинка', { exact: true })
+    ).toHaveCount(0);
 
     await page
       .getByTestId('ingredient-test-bun-1')
@@ -108,7 +151,6 @@ test.describe('Конструктор бургера', () => {
     await page.getByRole('button', { name: 'Оформить заказ' }).click();
 
     const modal = page.getByTestId('modal');
-    const burgerConstructor = page.getByTestId('burger-constructor');
 
     await expect(modal).toBeVisible();
     await expect(modal.getByTestId('order-number')).toHaveText('12345');
